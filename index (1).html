@@ -1,0 +1,150 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Billy's Time-Zap Nap-O-Tron</title>
+  <style>
+    /* Minimal Tailwind CSS for used classes */
+    .bg-gradient-to-br { background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)); }
+    .from-lime-400 { --tw-gradient-from: #84cc16; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, transparent); }
+    .via-purple-400 { --tw-gradient-stops: var(--tw-gradient-from), #c084fc, var(--tw-gradient-to, transparent); }
+    .to-pink-300 { --tw-gradient-to: #f9a8d4; }
+    .min-h-screen { min-height: 100vh; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-center { justify-content: center; }
+    .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .text-center { text-align: center; }
+    .text-5xl { font-size: 3rem; }
+    .font-bold { font-weight: 700; }
+    .text-yellow-300 { color: #fef08a; }
+    .text-xl { font-size: 1.25rem; }
+    .text-white { color: #ffffff; }
+    .text-pink-200 { color: #fbcfe8; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mt-6 { margin-top: 1.5rem; }
+    .mt-8 { margin-top: 2rem; }
+    .mb-8 { margin-bottom: 2rem; }
+    .text-2xl { font-size: 1.5rem; }
+    .text-yellow-200 { color: #fef9c3; }
+    .bg-red-500 { background-color: #ef4444; }
+    .hover\:bg-red-600:hover { background-color: #dc2626; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .rounded-full { border-radius: 9999px; }
+    .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+    .transition { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .duration-300 { transition-duration: 300ms; }
+    .duration-700 { transition-duration: 700ms; }
+    .opacity-0 { opacity: 0; }
+    .opacity-100 { opacity: 1; }
+    .flex-row { flex-direction: row; }
+    .justify-between { justify-content: space-between; }
+    .border-2 { border-width: 2px; }
+    .border-yellow-300 { border-color: #fef08a; }
+    .bg-purple-600 { background-color: #9333ea; }
+    .text-sm { font-size: 0.875rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .w-full { width: 100%; }
+    .max-w-4xl { max-width: 56rem; }
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    .blink { animation: blink 0.5s infinite; }
+    body { font-family: "Comic Sans MS", "Chalkboard SE", sans-serif; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-lime-400 via-purple-400 to-pink-300 min-h-screen flex flex-col items-center justify-center">
+  <header class="py-6 text-center">
+    <h1 class="text-5xl font-bold text-yellow-300 blink">Billy's Time-Zap Nap-O-Tron</h1>
+    <p class="text-xl text-pink-200 mt-2">For Billy Pilgrim: Rest through the chaos of time.</p>
+  </header>
+  <main class="flex flex-col items-center">
+    <button id="napBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 mt-4">
+      Zap Me to a Nap
+    </button>
+    <p id="napText" class="mt-6 text-2xl text-yellow-200 opacity-0 transition duration-700"></p>
+  </main>
+  <footer class="mt-8 mb-8 w-full max-w-4xl">
+    <h2 class="text-xl text-white font-bold text-center">Billy's Time-Travel Map</h2>
+    <div class="flex flex-row justify-between mt-4">
+      <div class="bg-purple-600 text-white text-sm py-2 px-4 border-2 border-yellow-300 rounded-full">1930s: Kid Billy, Grand Canyon</div>
+      <div class="bg-purple-600 text-white text-sm py-2 px-4 border-2 border-yellow-300 rounded-full">1944-45: Dresden, POW Chaos</div>
+      <div class="bg-purple-600 text-white text-sm py-2 px-4 border-2 border-yellow-300 rounded-full">1950s-60s: Ilium, Eyeball City</div>
+      <div class="bg-purple-600 text-white text-sm py-2 px-4 border-2 border-yellow-300 rounded-full">1968: Plane Crash Snooze</div>
+      <div class="bg-purple-600 text-white text-sm py-2 px-4 border-2 border-yellow-300 rounded-full">Tralfamadore: Alien Sleepover</div>
+      <div class="bg-purple-600 text-white text-sm py-2 px-4 border-2 border-yellow-300 rounded-full">1976: Speech & Zappy End</div>
+    </div>
+  </footer>
+  <script>
+    const timeZaps = [
+      { place: "1930s: Kid Billy, Grand Canyon", quote: "Rest in the Grand Canyon's quiet, Billy, where time feels still." },
+      { place: "1944-45: Dresden, POW Chaos", quote: "Find peace in sleep, Billy, away from Dresden’s scars." },
+      { place: "1950s-60s: Ilium, Eyeball City", quote: "Rest your eyes, Billy, from Ilium’s endless days." },
+      { place: "1968: Plane Crash Snooze", quote: "Sleep through the crash’s echo, Billy, in gentle quiet." },
+      { place: "Tralfamadore: Alien Sleepover", quote: "Drift in Tralfamadore’s timeless rest, Billy." },
+      { place: "1976: Speech & Zappy End", quote: "Rest before the end, Billy, where time meets peace." }
+    ];
+
+    const button = document.getElementById('napBtn');
+    const napText = document.getElementById('napText');
+
+    button.addEventListener('click', () => {
+      const randomIndex = Math.floor(Math.random() * timeZaps.length);
+      const zap = timeZaps[randomIndex];
+      napText.textContent = `Zapped to ${zap.place}: ${zap.quote}`;
+      napText.classList.remove('opacity-0');
+      napText.classList.add('opacity-100');
+      setTimeout(() => {
+        napText.classList.remove('opacity-100');
+        napText.classList.add('opacity-0');
+      }, 4000);
+    });
+  </script>
+</body>
+</html>
